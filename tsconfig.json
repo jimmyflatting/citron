@@ -12,6 +12,7 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "outDir": "build",
     "rootDir": "lib",
     "sourceMap": true,

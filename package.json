@@ -18,8 +18,8 @@
     "files": [
         "build"
     ],
-    "type": "module",
-    "main": "build/index.js",
+    "type": "commonjs",
+    "main": "build/lemon.js",
     "license": "MIT",
     "devDependencies": {
         "@changesets/cli": "^2.29.8",
@@ -29,8 +29,8 @@
         "vitest": "^4.0.15"
     },
     "scripts": {
-        "dev": "tsc --watch --preserveWatchOutput & node --watch build/server.js",
-        "start": "node build/server.js",
+        "dev": "tsc --watch --preserveWatchOutput & node --watch build/lemon.js",
+        "start": "node build/lemon.js",
         "build": "tsc",
         "ci": "npm run build && npm run format && npm run check-format && npm run test",
         "check-format": "prettier --check .",
