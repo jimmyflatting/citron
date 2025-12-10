@@ -1,9 +1,9 @@
 import { Pool } from 'pg';
 
 export class Database {
-  static pool: Pool;
+  public pool: Pool;
   constructor() {
-    Database.pool = new Pool({
+    this.pool = new Pool({
       user: process.env.DB_USER,
       host: process.env.DB_HOST,
       database: process.env.DB_NAME,
@@ -14,7 +14,7 @@ export class Database {
 
   async verifyConnection(): Promise<void> {
     try {
-      const client = await Database.pool.connect();
+      const client = await this.pool.connect();
       console.log(`Connected to ${process.env.DB_NAME} database`);
       client.release();
     } catch (error) {
@@ -24,7 +24,7 @@ export class Database {
   }
 
   query(text: string, params?: any[]) {
-    return Database.pool.query(text, params);
+    return this.pool.query(text, params);
   }
 }
 
