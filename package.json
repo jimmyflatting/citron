@@ -1,7 +1,7 @@
 {
   "name": "lemon",
   "version": "0.0.1",
-  "description": "A minimal webserver using Node.js and TypeScript",
+  "description": "A minimal MVC framework using Node.js and TypeScript",
   "keywords": [
     "webserver",
     "typescript"
@@ -18,7 +18,7 @@
   "files": [
     "build"
   ],
-  "type": "commonjs",
+  "type": "module",
   "main": "build/lemon.js",
   "license": "MIT",
   "devDependencies": {
@@ -29,8 +29,8 @@
     "vitest": "^4.0.15"
   },
   "scripts": {
-    "dev": "tsc --watch --preserveWatchOutput & node --watch build/lemon.js",
-    "start": "node build/lemon.js",
+    "dev": "tsc --watch --preserveWatchOutput & sleep 2 && node --watch build/*.js",
+    "start": "node build/app.js",
     "build": "tsc",
     "ci": "npm run build && npm run format && npm run check-format && npm run test",
     "check-format": "prettier --check .",
