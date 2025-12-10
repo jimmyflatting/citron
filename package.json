@@ -24,6 +24,7 @@
   "devDependencies": {
     "@changesets/cli": "^2.29.8",
     "@types/node": "^24.10.2",
+    "@types/pg": "^8.16.0",
     "prettier": "^3.7.4",
     "typescript": "^5.9.3",
     "vitest": "^4.0.15"
@@ -38,5 +39,9 @@
     "test": "vitest run",
     "local-release": "changeset version && changeset publish",
     "prepublishOnly": "npm run ci"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "pg": "^8.16.3"
   }
 }
