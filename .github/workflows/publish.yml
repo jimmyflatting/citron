@@ -1,0 +1,68 @@
+name: Publish Package
+
+on:
+    push:
+        branches: [main]
+    workflow_dispatch: # Allow manual triggering
+
+jobs:
+    publish:
+        runs-on: ubuntu-latest
+
+        # Only run if there are changes to package version or if manually triggered
+        if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish]') || contains(github.event.head_commit.message, 'version bump')
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '18'
+                  registry-url: 'https://registry.npmjs.org'
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Run tests
+              run: npm test
+
+            - name: Build package
+              run: npm run build
+
+            - name: Check if version exists on npm
+              id: check-version
+              run: |
+                  PACKAGE_NAME=$(node -p "require('./package.json').name")
+                  PACKAGE_VERSION=$(node -p "require('./package.json').version")
+
+                  if npm view "$PACKAGE_NAME@$PACKAGE_VERSION" version 2>/dev/null; then
+                    echo "version-exists=true" >> $GITHUB_OUTPUT
+                    echo "Version $PACKAGE_VERSION already exists on npm"
+                  else
+                    echo "version-exists=false" >> $GITHUB_OUTPUT
+                    echo "Version $PACKAGE_VERSION does not exist on npm"
+                  fi
+
+            - name: Publish to npm
+              if: steps.check-version.outputs.version-exists == 'false'
+              run: npm publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            - name: Create GitHub Release
+              if: steps.check-version.outputs.version-exists == 'false'
+              uses: actions/create-release@v1
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              with:
+                  tag_name: v${{ env.PACKAGE_VERSION }}
+                  release_name: Release v${{ env.PACKAGE_VERSION }}
+                  body: |
+                      Automated release for version ${{ env.PACKAGE_VERSION }}
+
+                      ## Changes
+                      See commit messages for details.
+                  draft: false
+                  prerelease: false

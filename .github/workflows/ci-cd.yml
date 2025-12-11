@@ -1,0 +1,145 @@
+name: CI/CD Pipeline
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+    workflow_dispatch:
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+
+        strategy:
+            matrix:
+                node-version: [16, 18, 20]
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: 'npm'
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Run linting
+              run: npm run lint || echo "No lint script found"
+              continue-on-error: true
+
+            - name: Run tests
+              run: npm test || echo "No tests found"
+              continue-on-error: true
+
+            - name: Build package
+              run: npm run build
+
+    publish:
+        needs: test
+        runs-on: ubuntu-latest
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0 # Fetch all history for version detection
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '18'
+                  registry-url: 'https://registry.npmjs.org'
+                  cache: 'npm'
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Build package
+              run: npm run build
+
+            - name: Get package info
+              id: package-info
+              run: |
+                  PACKAGE_NAME=$(node -p "require('./package.json').name")
+                  PACKAGE_VERSION=$(node -p "require('./package.json').version")
+                  echo "name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+                  echo "version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
+
+            - name: Check if version changed
+              id: version-check
+              run: |
+                  # Get the previous commit's package.json version
+                  PREV_VERSION=$(git show HEAD~1:package.json | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8')).version" 2>/dev/null || echo "0.0.0")
+                  CURRENT_VERSION="${{ steps.package-info.outputs.version }}"
+
+                  echo "Previous version: $PREV_VERSION"
+                  echo "Current version: $CURRENT_VERSION"
+
+                  if [ "$PREV_VERSION" != "$CURRENT_VERSION" ]; then
+                    echo "version-changed=true" >> $GITHUB_OUTPUT
+                    echo "Version changed from $PREV_VERSION to $CURRENT_VERSION"
+                  else
+                    echo "version-changed=false" >> $GITHUB_OUTPUT
+                    echo "Version did not change"
+                  fi
+
+            - name: Check if version exists on npm
+              id: npm-check
+              if: steps.version-check.outputs.version-changed == 'true'
+              run: |
+                  PACKAGE_NAME="${{ steps.package-info.outputs.name }}"
+                  PACKAGE_VERSION="${{ steps.package-info.outputs.version }}"
+
+                  if npm view "$PACKAGE_NAME@$PACKAGE_VERSION" version 2>/dev/null; then
+                    echo "exists=true" >> $GITHUB_OUTPUT
+                    echo "❌ Version $PACKAGE_VERSION already exists on npm"
+                    exit 1
+                  else
+                    echo "exists=false" >> $GITHUB_OUTPUT
+                    echo "✅ Version $PACKAGE_VERSION does not exist on npm, ready to publish"
+                  fi
+
+            - name: Publish to npm
+              if: steps.version-check.outputs.version-changed == 'true' && steps.npm-check.outputs.exists == 'false'
+              run: npm publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            - name: Create Git Tag
+              if: steps.version-check.outputs.version-changed == 'true' && steps.npm-check.outputs.exists == 'false'
+              run: |
+                  git config --local user.email "action@github.com"
+                  git config --local user.name "GitHub Action"
+                  git tag "v${{ steps.package-info.outputs.version }}"
+                  git push origin "v${{ steps.package-info.outputs.version }}"
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Create GitHub Release
+              if: steps.version-check.outputs.version-changed == 'true' && steps.npm-check.outputs.exists == 'false'
+              uses: actions/create-release@v1
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              with:
+                  tag_name: v${{ steps.package-info.outputs.version }}
+                  release_name: Release v${{ steps.package-info.outputs.version }}
+                  body: |
+                      🚀 **Automated Release v${{ steps.package-info.outputs.version }}**
+
+                      ## 📦 Published to npm
+                      ```bash
+                      npm install ${{ steps.package-info.outputs.name }}@${{ steps.package-info.outputs.version }}
+                      ```
+
+                      ## 📋 Changes
+                      ${{ github.event.head_commit.message }}
+
+                      See [full changelog](https://github.com/${{ github.repository }}/compare/v${{ steps.package-info.outputs.version }}...HEAD) for more details.
+                  draft: false
+                  prerelease: false

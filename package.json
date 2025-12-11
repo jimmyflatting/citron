@@ -15,7 +15,8 @@
         "build": "rm -rf build && tsc -p tsconfig.json",
         "start": "node build/index.js",
         "dev": "nodemon --watch '**/*.ts' --ext ts --exec 'ts-node index.ts'",
-        "test": "jest"
+        "test": "jest",
+        "publish": "npm run build && npm publish --access public"
     },
     "devDependencies": {
         "@types/jest": "^30.0.0",
