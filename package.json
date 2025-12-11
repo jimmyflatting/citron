@@ -16,7 +16,10 @@
         "start": "node build/index.js",
         "dev": "nodemon --watch '**/*.ts' --ext ts --exec 'ts-node index.ts'",
         "test": "jest",
-        "publish": "npm run build && npm publish --access public"
+        "publish": "npm run build && npm publish --access public",
+        "bump:patch": "./scripts/bump-version.sh patch",
+        "bump:minor": "./scripts/bump-version.sh minor",
+        "bump:major": "./scripts/bump-version.sh major"
     },
     "devDependencies": {
         "@types/jest": "^30.0.0",
