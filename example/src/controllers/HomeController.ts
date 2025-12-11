@@ -1,4 +1,4 @@
-import { Controller } from '../../src/controller';
+import { Controller } from '@jimmyflatting/lemonjs';
 
 class HomeController extends Controller {
     index(): string {

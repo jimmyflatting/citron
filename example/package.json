@@ -1,0 +1,19 @@
+{
+    "name": "lemonjs-example-app",
+    "version": "1.0.0",
+    "description": "",
+    "main": "build/index.js",
+    "types": "build/index.d.ts",
+    "scripts": {
+        "dev": "nodemon --watch '**/*.ts' --ext ts --exec 'ts-node index.ts'",
+        "build": "tsc -p tsconfig.json",
+        "start": "node build/index.js"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "type": "module",
+    "dependencies": {
+        "@jimmyflatting/lemonjs": "^1.0.10"
+    }
+}

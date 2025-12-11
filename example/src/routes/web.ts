@@ -1,7 +1,6 @@
-import { Router } from '../../src/router';
-import { aboutController } from '../../src/controller';
-import { homeController } from '../controllers/HomeController';
-import { RequestHandler } from 'express';
+import { Router, RequestHandler } from '@jimmyflatting/lemonjs';
+import { aboutController } from '@/controllers/AboutController';
+import { homeController } from '@/controllers/HomeController';
 
 let middleware: RequestHandler[] = [];
 

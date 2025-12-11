@@ -1,7 +1,7 @@
-import { App, Router } from '@jimmyflatting/lemonjs';
 import dotenv from 'dotenv';
-import { registerWebRoutes } from './example/routes/web';
-import { registerApiRoutes } from './example/routes/api';
+import { App, Router } from '@jimmyflatting/lemonjs';
+import { registerWebRoutes } from './src/routes/web';
+import { registerApiRoutes } from './src/routes/api';
 
 // Load environment variables from .env file
 dotenv.config();
