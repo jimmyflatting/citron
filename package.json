@@ -11,6 +11,7 @@
         "README.md"
     ],
     "scripts": {
+        "prep": "npm run build && npm pack",
         "build": "rm -rf build && tsc -p tsconfig.json",
         "start": "node build/index.js",
         "dev": "nodemon --watch '**/*.ts' --ext ts --exec 'ts-node server.ts'",
