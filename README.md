@@ -1,3 +1,3 @@
 **lemon.js**
 
-A minimal webserver for Node.js
+A minimal web framework for Node.js
