@@ -1,0 +1,128 @@
+React SSR + Client Components Rendering Plan
+===========================================
+
+Goal:
+-----
+Build a React-powered template engine inside a custom Node.js MVC framework.
+Requirements:
+- Server-Side Rendering (SSR) by default
+- Client components opt-in using "use client"
+- React hydration on the browser
+- SEO support (title, meta, OG tags)
+- Minimal dependencies
+- Uses public/index.html as main HTML shell
+
+Architecture Overview:
+----------------------
+Rendering Pipeline:
+1. Controller calls: res.render("PageName", props)
+2. Framework loads /views/pages/PageName.tsx
+3. Detect if it's a server or client component
+4. SSR render the page using ReactDOMServer.renderToString
+5. Collect metadata export if present
+6. Inject SSR HTML + metadata + props into public/index.html
+7. Send final HTML to browser
+8. Browser loads hydration script
+9. React hydrates on the client
+
+File Structure for example app (recommended):
+-----------------------------
+/src
+  /controllers
+  /routes
+  /views
+    /pages
+       Home.tsx
+       About.tsx
+    /layouts
+       MainLayout.tsx
+    /components
+       Button.tsx           // Server component
+       Counter.tsx          // Client component (has "use client")
+/public
+  index.html
+
+"use client" Behavior:
+----------------------
+Client components begin with:
+
+"use client";
+
+Your renderer must detect this by reading the file source code.
+Rules:
+- Client components are NOT server-rendered.
+- Render them as a placeholder div:
+  <div data-client-component="ComponentName" data-props="..."></div>
+- Add them to a list of client components to hydrate later
+- They will be included in a client bundle
+
+SSR Flow:
+---------
+1. Controller: res.render("Home", { name: "David" })
+2. Renderer loads Home.tsx
+3. React.createElement(Home, props)
+4. Render to HTML: ReactDOMServer.renderToString()
+5. Inject into <div id="root"></div> in index.html
+6. Insert:
+   - window.__PROPS__ = { ... }
+   - <script src="/static/client.bundle.js"></script>
+
+Hydration Flow:
+---------------
+Client script (hydration.js):
+- Import hydrateRoot from react-dom/client
+- Import the page/component
+- Run hydrateRoot(document.getElementById("root"), <Home {...window.__PROPS__} />)
+
+Metadata / SEO:
+---------------
+Each page can export:
+
+export const metadata = {
+  title: "Home",
+  description: "Page description",
+  ogImage: "/images/home.png"
+};
+
+Renderer extracts metadata and injects into <head>:
+<title>...</title>
+<meta name="description" content="...">
+<meta property="og:image" content="...">
+
+Bundling ("use client" components):
+-----------------------------------
+Use esbuild (recommended) to bundle:
+- All components that begin with "use client"
+- Output a client.bundle.js that:
+  - Registers all client components
+  - Hydrates each placeholder on the page
+
+Minimal bundler responsibilities:
+- Find all "use client" components in the render pass
+- Bundle them into one file
+- Expose a global registry like window.__CLIENT_COMPONENTS__
+- Hydration script loads components and replaces placeholders
+
+Recommended Build Order:
+------------------------
+1. Basic SSR (React → HTML)
+2. Props serialization + hydration
+3. Metadata / SEO injection
+4. "use client" component detection
+5. Placeholder rendering for client components
+6. Client bundler (esbuild)
+7. Layout system (optional)
+8. Error handling, caching, etc.
+
+Outcome:
+--------
+Once implemented, the framework supports:
+- React SSR as default
+- React client components with "use client"
+- Dynamic metadata for SEO
+- Hydration + interactivity
+- Controller → View rendering pipeline
+- A minimal Next.js-like system without Next.js
+
+This is a strong architecture for a custom Node.js MVC framework and is excellent for portfolio/CV use.
+
