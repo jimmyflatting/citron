@@ -14,7 +14,7 @@
     "scripts": {
         "build": "rm -rf build && tsc -p tsconfig.json",
         "start": "node build/index.js",
-        "dev": "nodemon --watch '**/*.ts' --ext ts --exec 'ts-node index.ts'",
+        "dev": "nodemon --watch '**/*.ts' --ext ts --exec 'ts-node server.ts'",
         "test": "jest",
         "bump:patch": "./.github/bump-version.sh patch && git push origin main",
         "bump:minor": "./.github/bump-version.sh minor && git push origin main",
