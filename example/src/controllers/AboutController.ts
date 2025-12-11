@@ -1,20 +1,11 @@
-import {
-    Controller,
-    Request,
-    Response,
-    NextFunction,
-} from '@jimmyflatting/lemonjs';
+import { Controller } from '@jimmyflatting/lemonjs';
 
 class AboutController extends Controller {
-    index(req?: Request, res?: Response, next?: NextFunction): string {
-        this.setContext(req, res, next);
-
+    index(): string {
         return `About LemonJS`;
     }
 
-    team(req?: Request, res?: Response, next?: NextFunction): string {
-        this.setContext(req, res, next);
-
+    team(): string {
         return `About the Team`;
     }
 }

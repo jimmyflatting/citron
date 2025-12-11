@@ -6,8 +6,8 @@ import {
     RequestHandler,
 } from 'express';
 
-type RouteHandler = (req?: Request, res?: Response, next?: NextFunction) => any;
-
+// type RouteHandler = (req?: Request, res?: Response, next?: NextFunction) => any;
+type RouteHandler = () => any;
 interface Route {
     method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
     path: string;
@@ -97,7 +97,9 @@ export class Router {
                 next: NextFunction
             ) => {
                 try {
-                    const result = route.handler(req, res, next);
+                    const result = route.handler();
+                    console.log(result);
+                    console.log(typeof result);
 
                     // If handler returns a string, send it as response
                     if (typeof result === 'string' && !res.headersSent) {
@@ -108,7 +110,7 @@ export class Router {
                 }
             };
 
-            // Register route with middleware
+            // register route with middleware
             switch (route.method) {
                 case 'GET':
                     app.get(route.path, ...route.middleware, expressHandler);
@@ -129,7 +131,6 @@ export class Router {
         });
     }
 
-    // Get all registered routes (for debugging)
     getRoutes(): Route[] {
         return [...this.routes];
     }
