@@ -18,7 +18,7 @@ NEW_VERSION=$(node -p "require('./package.json').version")
 echo "Version bumped to $NEW_VERSION"
 
 # Add changes to git
-git add package.json
+git add package.json package-lock.json
 
 echo "Committing version bump..."
 git commit -m "chore: bump version to $NEW_VERSION [publish]"
