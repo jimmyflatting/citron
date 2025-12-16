@@ -25,10 +25,15 @@ export class App {
 
     start(port: number): void {
         this.server = this.app.listen(port, () => {
-            console.log(`🍋 LemonJS server is running on port ${port}`);
-            console.log(
-                `📋 Registered ${this.router.getRoutes().length} route(s)`
-            );
+            console.log(`🍋 Citron server is running on port ${port}`);
+            if (process.env.NODE_ENV && process.env.NODE_ENV !== 'production') {
+                console.log(`DEBUG: Environment: ${process.env.NODE_ENV}`);
+                console.log(
+                    `DEBUG: Registered ${
+                        this.router.getRoutes().length
+                    } route(s)`
+                );
+            }
         });
     }
 
